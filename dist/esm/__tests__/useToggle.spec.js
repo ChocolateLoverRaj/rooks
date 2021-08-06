@@ -1,0 +1,133 @@
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+/**
+ * @jest-environment jsdom
+ */
+import { render, cleanup, fireEvent } from '@testing-library/react';
+import React from 'react';
+import { useToggle } from '../hooks/useToggle';
+describe('useToggle behaviour', function () {
+    var App;
+    beforeEach(function () {
+        App = function () {
+            var _a = __read(useToggle(true), 2), value = _a[0], toggleValue = _a[1];
+            return (React.createElement("p", { "data-testid": "toggle-element", onClick: toggleValue }, value.toString()));
+        };
+    });
+    afterEach(cleanup); // <-- add this
+    it('should be defined', function () {
+        expect(useToggle).toBeDefined();
+    });
+    it('sets initial value correctly', function () {
+        var getByTestId = render(React.createElement(App, null)).getByTestId;
+        var toggleElement = getByTestId('toggle-element');
+        expect(toggleElement.innerHTML).toBe('true');
+    });
+    it('updates value', function () {
+        var getByTestId = render(React.createElement(App, null)).getByTestId;
+        var toggleElement = getByTestId('toggle-element');
+        fireEvent.click(toggleElement);
+        expect(toggleElement.innerHTML).toBe('false');
+    });
+});
+describe('useToggle with custom toggle function', function () {
+    var App;
+    beforeEach(function () {
+        App = function () {
+            var _a = __read(useToggle('regina', function (v) {
+                return v === 'regina' ? 'phalange' : 'regina';
+            }), 2), value = _a[0], toggleValue = _a[1];
+            return (React.createElement("p", { "data-testid": "toggle-element", onClick: toggleValue }, value));
+        };
+    });
+    afterEach(cleanup); // <-- add this
+    it('should be defined', function () {
+        expect(useToggle).toBeDefined();
+    });
+    it('sets initial value correctly', function () {
+        var getByTestId = render(React.createElement(App, null)).getByTestId;
+        var toggleElement = getByTestId('toggle-element');
+        expect(toggleElement.innerHTML).toBe('regina');
+    });
+    it('updates value', function () {
+        var getByTestId = render(React.createElement(App, null)).getByTestId;
+        var toggleElement = getByTestId('toggle-element');
+        fireEvent.click(toggleElement);
+        expect(toggleElement.innerHTML).toBe('phalange');
+    });
+});
+describe('useToggle with custom toggle function', function () {
+    var App;
+    beforeEach(function () {
+        App = function () {
+            var _a = __read(useToggle(), 2), value = _a[0], toggleValue = _a[1];
+            return (React.createElement("p", { "data-testid": "toggle-element", onClick: toggleValue }, value.toString()));
+        };
+    });
+    afterEach(cleanup); // <-- add this
+    it('should be false by default', function () {
+        var getByTestId = render(React.createElement(App, null)).getByTestId;
+        var toggleElement = getByTestId('toggle-element');
+        expect(toggleElement.innerHTML).toBe('false');
+    });
+});
+describe('useToggle with reducer', function () {
+    var App;
+    var toggleReducer;
+    beforeEach(function () {
+        toggleReducer = function (state, action) {
+            switch (action.type) {
+                case 'yep':
+                    return 1;
+                case 'nope':
+                    return -1;
+                case 'maybe':
+                    return 0;
+                default:
+                    return state;
+            }
+        };
+        App = function () {
+            var _a = __read(useToggle(1, toggleReducer), 2), value = _a[0], dispatch = _a[1];
+            return (React.createElement(React.Fragment, null,
+                React.createElement("p", { "data-testid": "toggle-element" }, value.toString()),
+                React.createElement("button", { "data-testid": "yep-button", onClick: function () { return dispatch({ type: 'yep' }); } }),
+                React.createElement("button", { "data-testid": "nope-button", onClick: function () { return dispatch({ type: 'nope' }); } }),
+                React.createElement("button", { "data-testid": "maybe-button", onClick: function () { return dispatch({ type: 'maybe' }); } })));
+        };
+    });
+    afterEach(cleanup); // <-- add this
+    it('should be 1 by default', function () {
+        var getByTestId = render(React.createElement(App, null)).getByTestId;
+        var toggleElement = getByTestId('toggle-element');
+        expect(toggleElement.innerHTML).toBe('1');
+    });
+    it('should update with dispatched actions', function () {
+        var getByTestId = render(React.createElement(App, null)).getByTestId;
+        var toggleElement = getByTestId('toggle-element');
+        var nopeButton = getByTestId('nope-button');
+        var maybeButton = getByTestId('maybe-button');
+        var yepButton = getByTestId('yep-button');
+        fireEvent.click(nopeButton);
+        expect(toggleElement.innerHTML).toBe('-1');
+        fireEvent.click(maybeButton);
+        expect(toggleElement.innerHTML).toBe('0');
+        fireEvent.click(yepButton);
+        expect(toggleElement.innerHTML).toBe('1');
+    });
+});
+// figure out tests
